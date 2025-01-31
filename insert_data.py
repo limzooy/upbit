@@ -4,12 +4,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import desc
 import time
 
-# API 요청 기본 URL
 URL = "https://api.upbit.com/v1/candles/minutes/15"
 MARKET = "KRW-BTC"
 COUNT = 200  # 한 번 요청할 때 가져올 데이터 개수
 
-# 데이터베이스 세션 생성
 session = SessionLocal()
 
 def get_latest_saved_timestamp():
