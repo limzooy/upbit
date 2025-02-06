@@ -39,7 +39,8 @@ def collect_historical_data():
 
                 try:
                     for item in data:
-                        # 중복 방지: timestamp가 이미 존재하는지 확인 후 저장
+                        # 중복 방지: timestamp가 이미 존재하는지 하나하나 확인 후 저장
+                        # 존재하면 continue를 실행해서 중복 데이터를 건너뜀
                         exists = session.query(UpbitCandleData).filter_by(timestamp=item["timestamp"]).first()
                         if exists:
                             print(f"Skipping duplicate timestamp: {item['timestamp']}")
