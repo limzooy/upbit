@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upbit 15분 캔들 데이터</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+    <!-- JavaScript 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    
+    <style>
+        .button-container {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .button-container button {
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #balance-info {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upbit KRW-BTC 15분 캔들 데이터</h1>
+
+    <!-- 잔고 정보 -->
+    <div id="balance-info">
+        <span id="balance"></span>
+    </div>
+
+    <!-- 차트 영역 -->
+    <canvas id="candleChart"></canvas>
+
+        <!-- 잔고 조회 및 매매 버튼 -->
+        <div class="button-container">
+            <button id="checkBalanceBtn">잔고 조회</button>
+            <button id="placeOrderBtn">매매 주문</button>
+            <button id="cancelOrderBtn">주문 취소</button>
+        </div>
+
+    <!-- 데이터 테이블 -->
+    <table id="candleTable" class="display">
+        <thead>
+            <tr>
+                <th>시간 (KST)</th>
+                <th>시장</th>
+                <th>시가</th>
+                <th>고가</th>
+                <th>저가</th>
+                <th>종가</th>
+                <th>거래량</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- ✅ script.js 추가 -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

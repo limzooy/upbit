@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upbit 15분 캔들 데이터</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+    <!-- JavaScript 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+    <h1>Upbit KRW-BTC 15분 캔들 데이터</h1>
+
+    <!-- 차트 영역 -->
+    <canvas id="candleChart"></canvas>
+
+    <!-- 데이터 테이블 -->
+    <table id="candleTable" class="display">
+        <thead>
+            <tr>
+                <th>시간 (KST)</th>
+                <th>시장</th>
+                <th>시가</th>
+                <th>고가</th>
+                <th>저가</th>
+                <th>종가</th>
+                <th>거래량</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- ✅ script.js 추가 -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
