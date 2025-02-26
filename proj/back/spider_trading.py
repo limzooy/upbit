@@ -1,219 +1,120 @@
-# import pymysql
-# import pandas as pd
-# import numpy as np
-# import datetime
-# import json
-# import time
-
-# # MySQL 연결 정보
-# DB_CONFIG = {
-#     "host": "localhost",
-#     "user": "root",
-#     "password": "root",
-#     "database": "upbit",
-#     "port": 3307
-# }
-
-# # 기술적 지표 계산 함수
-# def calculate_indicators(df):
-#     df['ma20'] = df['trade_price'].rolling(window=20).mean()
-#     df['stddev'] = df['trade_price'].rolling(window=20).std()
-#     df['upper_band'] = df['ma20'] + (df['stddev'] * 2)
-#     df['lower_band'] = df['ma20'] - (df['stddev'] * 2)
-#     df['rsi'] = compute_rsi(df['trade_price'], 14)
-#     df['macd'], df['signal_value'] = compute_macd(df['trade_price'])
-#     return df
-
-# # RSI 계산
-# def compute_rsi(series, period=14):
-#     delta = series.diff()
-#     gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-#     loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-#     rs = gain / loss
-#     return 100 - (100 / (1 + rs))
-
-# # MACD 계산
-# def compute_macd(series, short_period=12, long_period=26, signal_period=9):
-#     short_ema = series.ewm(span=short_period, adjust=False).mean()
-#     long_ema = series.ewm(span=long_period, adjust=False).mean()
-#     macd = short_ema - long_ema
-#     signal_value = macd.ewm(span=signal_period, adjust=False).mean()
-#     return macd, signal_value
-
-# # 매매 신호 생성 클래스
-# class SignalGenerator:
-#     def __init__(self, df):
-#         self.df = calculate_indicators(df)
-#         self.current_step = len(df) - 1  # 최신 데이터 사용
-
-#     def generate_signal(self):
-#         current_row = self.df.iloc[self.current_step]
-#         signal_value = "HOLD"
-        
-#         if (current_row["trade_price"] <= current_row["lower_band"] and
-#             current_row["rsi"] <= 30 and
-#             current_row["macd"] > current_row["signal_value"]):
-#             signal_value = "BUY"
-        
-#         elif (current_row["trade_price"] >= current_row["upper_band"] or
-#               current_row["rsi"] >= 70 or
-#               current_row["macd"] < current_row["signal_value"]):
-#             signal_value = "SELL"
-        
-#         return signal_value, current_row
-
-# # 데이터 불러오기 (upbit_15m_candle_data 사용)
-# def fetch_data():
-#     connection = pymysql.connect(**DB_CONFIG)
-#     query = "SELECT timestamp, trade_price FROM upbit_15m_candle_data ORDER BY timestamp ASC"
-#     df = pd.read_sql(query, connection)
-#     connection.close()
-#     return df
-
-# # DB에 매매 신호 및 지표 저장
-# def save_to_db(timestamp, signal_value, indicators):
-#     connection = pymysql.connect(**DB_CONFIG)
-#     cursor = connection.cursor()
-    
-#     query = """
-#     INSERT INTO TechnicalIndicators (market, timestamp, moving_avg_50, rsi_14, macd, signal_value)
-#     VALUES (%s, %s, %s, %s, %s, %s)
-#     """
-#     values = ("KRW-BTC", timestamp, indicators["ma20"], indicators["rsi"], indicators["macd"], indicators["signal_value"])
-    
-#     cursor.execute(query, values)
-#     connection.commit()
-#     connection.close()
-
-# # 실행 함수
-# if __name__ == "__main__":
-#     while True:
-#         df = fetch_data()
-#         generator = SignalGenerator(df)
-#         signal_value, indicators = generator.generate_signal()
-        
-#         result = {
-#             "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#             "signal_value": signal_value
-#         }
-
-#         with open("trade_signal.json", "w") as f:
-#             json.dump(result, f)
-        
-#         # DB에 저장
-#         save_to_db(indicators.name, signal_value, indicators)
-
-#         print("[매매 신호 저장 완료]", result)
-        
-#         # 일정 시간 대기 (예: 15분)
-#         time.sleep(900)  # 900초 = 15분
-
-import pymysql
+import pyupbit
 import pandas as pd
-import numpy as np
-import datetime
-import json
 import time
+from datetime import datetime, timezone, timedelta
 
-# MySQL 연결 정보
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "root",
-    "database": "upbit",
-    "port": 3307
-}
-
-# 기술적 지표 계산 함수
-def calculate_indicators(df):
-    df['ma20'] = df['trade_price'].rolling(window=20).mean()
-    df['stddev'] = df['trade_price'].rolling(window=20).std()
-    df['upper_band'] = df['ma20'] + (df['stddev'] * 2)
-    df['lower_band'] = df['ma20'] - (df['stddev'] * 2)
-    df['rsi'] = compute_rsi(df['trade_price'], 14)
-    df['macd'], df['signal_value'] = compute_macd(df['trade_price'])
-    return df
-
-# RSI 계산
-def compute_rsi(series, period=14):
-    delta = series.diff()
+# RSI 계산 함수
+def get_rsi(data, period=14):
+    delta = data.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
-# MACD 계산
-def compute_macd(series, short_period=12, long_period=26, signal_period=9):
-    short_ema = series.ewm(span=short_period, adjust=False).mean()
-    long_ema = series.ewm(span=long_period, adjust=False).mean()
-    macd = short_ema - long_ema
-    signal_value = macd.ewm(span=signal_period, adjust=False).mean()
-    return macd, signal_value
-
-# 매매 신호 생성 클래스
-class SignalGenerator:
-    def __init__(self, df):
-        self.df = calculate_indicators(df)
-        self.current_step = len(df) - 1  # 최신 데이터 사용
-
-    def generate_signal(self):
-        current_row = self.df.iloc[self.current_step]
-        signal_value = "HOLD"
-        
-        if (current_row["trade_price"] <= current_row["lower_band"] and
-            current_row["rsi"] <= 30 and
-            current_row["macd"] > current_row["signal_value"]):
-            signal_value = "BUY"
-        
-        elif (current_row["trade_price"] >= current_row["upper_band"] or
-              current_row["rsi"] >= 70 or
-              current_row["macd"] < current_row["signal_value"]):
-            signal_value = "SELL"
-        
-        return signal_value, current_row
-
-# 데이터 불러오기
-def fetch_data():
-    connection = pymysql.connect(**DB_CONFIG)
-    query = "SELECT timestamp, trade_price FROM upbit_15m_candle_data ORDER BY timestamp ASC"
-    df = pd.read_sql(query, connection)
-    connection.close()
+# 볼린저 밴드 계산 함수(단기는 14~18이 적당 / 장기 20)
+def get_bollinger_bands(df, n=18, k=2):
+    df['MA'] = df['close'].rolling(window=n).mean()
+    df['STD'] = df['close'].rolling(window=n).std()
+    df['Upper'] = df['MA'] + k * df['STD']
+    df['Lower'] = df['MA'] - k * df['STD']
     return df
 
-# DB에 매매 신호 및 지표 저장
-def save_to_db(timestamp, signal_value, indicators):
-    connection = pymysql.connect(**DB_CONFIG)
-    cursor = connection.cursor()
-    
-    query = """
-    INSERT INTO TechnicalIndicators (market, timestamp, moving_avg_50, rsi_14, macd, signal_value)
-    VALUES (%s, %s, %s, %s, %s, %s)
-    """
-    values = ("KRW-BTC", timestamp, indicators["ma20"], indicators["rsi"], indicators["macd"], signal_value)
-    
-    cursor.execute(query, values)
-    connection.commit()
-    connection.close()
+# 이동평균선 계산 함수 (단기는 MA3, MA10 / 장기는 MA5, MA20)
+def get_moving_averages(df):
+    df['MA3'] = df['close'].rolling(window=3).mean()
+    df['MA10'] = df['close'].rolling(window=10).mean()
+    return df
 
-# 실행 함수
-if __name__ == "__main__":
+# 거래 로그 저장 함수
+def log_trade(action, price, amount, balance, timestamp, reason="", log_file="trade_log.txt"):
+    with open(log_file, "a", encoding="utf-8") as log:
+        log.write(f"{timestamp}, {action}, {price}, {amount:.4f}, {balance:.0f}, {reason}\n")
+
+def real_time_trading(symbol="KRW-BTC", initial_balance=10000000, fee_rate=0.00139):
+    # KST 시간대 설정
+    KST = timezone(timedelta(hours=9))
+
+    balance = initial_balance
+    coin = 0
+    trades = []
+    web_orders = []  # 거미줄 주문 목록
+    web_interval = 0.01  # 거미줄 간격 (1%)
+
     while True:
-        df = fetch_data()
-        generator = SignalGenerator(df)
-        signal_value, indicators = generator.generate_signal()
-        
-        result = {
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "signal_value": signal_value
-        }
+        try:
+            # 최근 200개의 15분봉 데이터 가져오기 (실시간 데이터 사용)
+            df = pyupbit.get_ohlcv(symbol, interval="minute5", count=100)
 
-        # 매매 신호를 파일로 저장
-        with open("trade_signal.json", "w") as f:
-            json.dump(result, f)
-        
-        # DB에 저장
-        save_to_db(indicators.name, signal_value, indicators)
+            # 기술적 지표 계산
+            df = get_bollinger_bands(df)
+            df['RSI'] = get_rsi(df['close'])
+            df = get_moving_averages(df)
 
-        print("[매매 신호 저장 완료]", result)
-        
-        time.sleep(900)  # 900초 = 15분
+            current_price = df['close'].iloc[-1]
+            rsi = df['RSI'].iloc[-1]
+            lower_band = df['Lower'].iloc[-1]
+            upper_band = df['Upper'].iloc[-1]
+
+            current_time = datetime.now(KST)
+            print(f"현재 시간: {current_time}, 가격: {current_price}, RSI: {rsi:.2f}")
+
+            executed_trade = False
+
+            # 거미줄 매수 주문 실행
+            for order in web_orders[:]:
+                if current_price <= order['price']:
+                    buy_amount = order['amount']
+                    coin_bought = buy_amount / current_price * (1 - fee_rate)
+                    balance -= buy_amount
+                    coin += coin_bought
+                    trades.append(('buy', current_price, coin_bought, current_time))
+                    web_orders.remove(order)
+                    log_trade("매수", current_price, coin_bought, balance, current_time)
+                    print(f"매수 실행: 가격 {current_price}, 수량 {coin_bought:.4f}")
+                    executed_trade = True
+
+            # 새로운 거미줄 매수 주문 생성
+            buy_conditions = []
+            if current_price < lower_band:
+                buy_conditions.append(f"Lower Band({lower_band:.2f}) 충족")
+            else:
+                buy_conditions.append(f"Lower Band({lower_band:.2f}) 미충족")
+
+            if rsi < 40:
+                buy_conditions.append(f"RSI({rsi:.2f}) 충족")
+            else:
+                buy_conditions.append(f"RSI({rsi:.2f}) 미충족")
+
+            if balance > 0 and current_price < lower_band and rsi < 40:
+                for j in range(1, 21):  # 20개의 거미줄 주문 생성
+                    order_price = current_price * (1 - web_interval * j)
+                    order_amount = balance * 0.025  # 잔고의 5%씩 매수
+                    web_orders.append({'price': order_price, 'amount': order_amount})
+                print("새로운 거미줄 매수 주문 생성")
+                executed_trade = True
+            else:
+                print(f"거래 보류: {', '.join(buy_conditions)}")
+                log_trade("HOLD", current_price, 0, balance, current_time, reason=', '.join(buy_conditions))
+
+            # 매도 신호
+            if coin > 0 and current_price > upper_band and rsi > 60:
+                sell_amount = coin * 0.5  # 보유 코인의 50% 매도
+                balance += sell_amount * current_price * (1 - fee_rate)
+                coin -= sell_amount
+                trades.append(('sell', current_price, sell_amount, current_time))
+                log_trade("매도", current_price, sell_amount, balance, current_time)
+                print(f"매도 실행: 가격 {current_price}, 수량 {sell_amount:.4f}")
+                executed_trade = True
+
+            print(f"현재 잔고: {balance:.0f} 원, 코인 보유량: {coin:.4f}")
+            print("------------------------")
+
+            time.sleep(300)  # 15분 대기
+
+        except Exception as e:
+            print(f"에러 발생: {e}")
+            time.sleep(300)  # 에러 발생 시 15분 대기 후 재시도
+
+# 실시간 거래 시작
+real_time_trading()
+
