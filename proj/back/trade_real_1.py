@@ -1,3 +1,5 @@
+# 매도 조건에 문제있음!!!!
+
 from dotenv import load_dotenv
 import os
 import pyupbit
@@ -90,7 +92,7 @@ def main():
     while True:
         try:
             now = datetime.datetime.now()
-            df = pyupbit.get_ohlcv(ticker, interval="minute5", count=200)
+            df = pyupbit.get_ohlcv(ticker, interval="minute5", count=100)
 
             df = get_bollinger_bands(df)
             df['RSI'] = get_rsi(df['close'])
@@ -131,7 +133,7 @@ def main():
             # 새로운 거미줄 매수 주문 생성
             if not is_web_active and krw > fixed_order_amount and current_price < lower_band and rsi < 40:
                 is_web_active = True
-                for j in range(1, 11):  # 10개의 거미줄 주문 생성
+                for j in range(1, 6):  # 5개의 거미줄 주문 생성
                     order_price = current_price * (1 - web_interval * j)
                     web_orders.append({'price': order_price, 'amount': fixed_order_amount})
                     print(f"거미줄 매수 주문 생성: 가격 {order_price}원, 금액 {fixed_order_amount}원")
