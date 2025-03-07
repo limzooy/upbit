@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 # Upbit API 키 설정
-access_key = "zfmNRK3uBoOy2gZYBQLyMh7geBK47wbkA32mMZx7"
-secret_key = "LFEKJFNnSFppZ53Ry1OD54UGKDDx820CxDSoBulo"
+access_key = ""
+secret_key = ""
 upbit = pyupbit.Upbit(access_key, secret_key)
 
 def get_rsi(data, period=14):
