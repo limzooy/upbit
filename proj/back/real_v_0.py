@@ -1,12 +1,24 @@
+# test0_매도 조건: 볼린저 상단 and rsi 65이상
+# 매수: 자산의 2.5%, 매도: 보유 금액의 50%
+# 기술적 지표 조건 + 거미줄 매수 전략
+# 매도 전략에는 거미줄 전략이 적용 X !!!!
+
+from dotenv import load_dotenv
+import os
 import pyupbit
 import time
 import datetime
 import numpy as np
 import pandas as pd
 
-# Upbit API 키 설정
-access_key = ""
-secret_key = ""
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 API 키 불러오기
+access_key = os.getenv("ACCESS_KEY")
+secret_key = os.getenv("SECRET_KEY")
+
+# Upbit 객체 생성
 upbit = pyupbit.Upbit(access_key, secret_key)
 
 def get_rsi(data, period=14):
@@ -97,7 +109,7 @@ def main():
             # 거미줄 매수 주문 실행
             if is_web_active:
                 for order in web_orders[:]:
-                    if current_price <= order['price']:
+                    if current_price <= order['price'] and order['amount'] >= 5000::
                         buy_result = buy_crypto_currency(ticker, order['amount'])
                         if buy_result:
                             print(f"매수 주문 체결: 가격 {current_price}원, 금액 {order['amount']}원")
@@ -114,20 +126,26 @@ def main():
                 for j in range(1, 11):  # 10개의 거미줄 주문 생성
                     order_price = current_price * (1 - web_interval * j)
                     order_amount = initial_balance * 0.025  # 초기 잔고의 2.5%씩 매수
-                    web_orders.append({'price': order_price, 'amount': order_amount})
-                    print(f"거미줄 매수 주문 생성: 가격 {order_price}원, 금액 {order_amount}원")
+                    if order_amount >= 5000:  # 최소 주문 금액 확인
+                        web_orders.append({'price': order_price, 'amount': order_amount})
+                        print(f"거미줄 매수 주문 생성: 가격 {order_price}원, 금액 {order_amount}원")
+                    else:
+                        print("거미줄 매수 금액이 최소 주문 금액 미만입니다.")
 
             # 매도 신호
             if btc > 0 and current_price > upper_band and rsi > 65:
                 sell_amount = btc * 0.5  # 보유 코인의 50% 매도
                 sell_result = sell_crypto_currency(ticker, sell_amount)
-                if sell_result:
-                    print(f"매도 주문 체결: 가격 {current_price}원, 수량 {sell_amount}")
-                    # 매도 후 거미줄 초기화
-                    cancel_all_orders(ticker)
-                    web_orders.clear()
-                    is_web_active = False
-                    print("매도 후 거미줄 초기화 완료")
+                if sell_krw >= 5000:  # 최소 주문 금액 확인
+                    sell_result = sell_crypto_currency(ticker, sell_amount)
+                    if sell_result:
+                        print(f"매도 주문 체결: 가격 {current_price}원, 수량 {sell_amount}")
+                        cancel_all_orders(ticker)
+                        web_orders.clear()
+                        is_web_active = False
+                        print("매도 후 거미줄 초기화 완료")
+                else:
+                    print("매도 금액이 최소 주문 금액 미만입니다.")
 
             # 출력 형식 수정
             print(f"현재시간: {now} 현재가: {current_price:.0f} RSI: {rsi:.2f} 하한: {lower_band:.0f} 상한: {upper_band:.0f}")
