@@ -62,8 +62,8 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
                 is_sell_web_active = False
                 is_web_active = True
                 for j in range(1, 11):
-                    order_price = current_price * (1 - 0.005 * j)
-                    order_krw = initial_balance * 0.025
+                    order_price = current_price * (1 - 0.01 * j)
+                    order_krw = initial_balance * 0.05
                     if order_krw >= 5000:  # 최소 주문 금액 확인
                         web_orders.append({
                             'price': order_price,
@@ -104,7 +104,7 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
                 is_sell_web_active = True
                 sell_amount = btc * 0.5
                 for j in range(1, 6):
-                    order_price = current_price * (1 + 0.01 * j)
+                    order_price = current_price * (1 + 0.02 * j)
                     sell_web_orders.append({
                         'price': order_price,
                         'amount': sell_amount / 5
@@ -147,7 +147,7 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
 
 # 실행 및 결과 저장
 if __name__ == "__main__":
-    df = load_data("backtest_data/KRW-BTC_5min_2023-2025.csv")
+    df = load_data("backtest_data/KRW-BTC_5min_2024-2025.csv")
     result = backtest(df)
 
     # 콘솔 출력
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     print(f"총 매도 횟수: {result['sell_count']}회")
     
     # 파일 저장
-    with open("backtest_result_v_3(2023-2025).txt", "w") as f:
+    with open("backtest_result_v_3(2024-2025).txt", "w") as f:
         f.write("=== 개선된 백테스트 결과 ===\n")
         f.write(f"초기 자본: {result['initial_balance']:,.0f} KRW\n")
         f.write(f"최종 자산: {result['final_balance']:,.0f} KRW\n")

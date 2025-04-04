@@ -71,8 +71,8 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
                 # 매수 거미줄 생성
                 is_web_active = True
                 for j in range(1, 11):
-                    order_price = current_price * (1 - 0.005*j)
-                    order_krw = initial_balance * 0.025  # 2.5%씩 분할 매수
+                    order_price = current_price * (1 - 0.01*j) # 거미줄 간격
+                    order_krw = initial_balance * 0.05  # 5%씩 분할 매수
                     if order_krw >= 5000:  # 최소 주문 금액 확인
                         web_orders.append({
                             'price': order_price,
@@ -116,7 +116,7 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
                 is_sell_web_active = True
                 sell_amount = btc * 0.5  # 50% 물량 매도
                 for j in range(1, 6):
-                    order_price = current_price * (1 + 0.01*j)  # 1% 간격
+                    order_price = current_price * (1 + 0.02*j)  # 1% 간격
                     sell_web_orders.append({
                         'price': order_price,
                         'amount': sell_amount / 5  # 5단계 분할
@@ -164,7 +164,7 @@ def backtest(df, initial_balance=10000000, fee=0.0005):
 # 실행 예시
 if __name__ == "__main__":
     # 데이터 로드
-    df = load_data("backtest_data/KRW-BTC_5min_2023-2025.csv")
+    df = load_data("backtest_data/KRW-BTC_5min_2024-2025.csv")
     df = calculate_indicators(df)
     
     # 백테스트 실행
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     #     print(f"[{trade[0]}] {trade[1]} - 가격: {trade[2]:,.0f} 수량: {trade[3]:.8f}")
 
     # 결과 저장
-    with open("backtest_result_v_2(2023-2025).txt", "w") as f:
+    with open("backtest_result_v_2(2024-2025).txt", "w") as f:
         f.write("=== 백테스트 결과 ===\n")
         f.write(f"초기 자본: {result['initial_balance']:,.0f} KRW\n")
         f.write(f"최종 자산: {result['final_balance']:,.0f} KRW\n")

@@ -1,5 +1,5 @@
 # test2 매도 조건: 평단가 수익률 2%이상 매도
-# 매수: 자산의 2.5%, 매도: 보유 금액의 50%
+# 매수: 자산의 5%, 매도: 보유 금액의 50%
 # 매수 거미줄 간격: 0.5%, 매도 거미줄 간격: 1%
 # 매수/매도 전략에 거미줄 전략이 적용 O
 
@@ -101,7 +101,7 @@ def main():
                 is_web_active = True
                 for j in range(1, 11):
                     order_price = current_price * (1 - web_interval * j)
-                    order_amount = initial_balance * 0.025
+                    order_amount = initial_balance * 0.05
                     if order_amount >= 5000:  # 최소 주문 금액 확인
                         web_orders.append({'price': order_price, 'amount': order_amount})
                     else:

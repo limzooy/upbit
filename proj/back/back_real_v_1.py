@@ -27,7 +27,7 @@ def get_bollinger_bands(df, n=20, k=2):
     return df
 
 # 백테스트 실행
-def backtest(df, initial_balance=1000000, web_interval=0.005, sell_web_interval=0.01):
+def backtest(df, initial_balance=1000000, web_interval=0.005, sell_web_interval=0.02):
     balance = initial_balance
     btc = 0
     web_orders = []
@@ -56,7 +56,7 @@ def backtest(df, initial_balance=1000000, web_interval=0.005, sell_web_interval=
             is_web_active = True
             for j in range(1, 11):
                 order_price = current_price * (1 - web_interval * j)
-                order_amount = initial_balance * 0.025 / current_price
+                order_amount = initial_balance * 0.05 / current_price
                 if order_amount * order_price >= 5000:  # 최소 주문 금액 확인
                     web_orders.append({'price': order_price, 'amount': order_amount})
         
@@ -101,7 +101,7 @@ def backtest(df, initial_balance=1000000, web_interval=0.005, sell_web_interval=
     profit = (final_value - initial_balance) / initial_balance * 100
     
     # 거래 기록을 파일로 저장
-    with open("backtest_result_v_1(2023-2025).txt", "w") as file:
+    with open("backtest_result_v_1(2024-2025).txt", "w") as file:
         file.write(f"최종 자산 가치: {final_value:.0f} KRW\n")
         file.write(f"총 수익률: {profit:.2f}%\n")
         file.write(f"총 매수 횟수: {buy_count}회\n")  # 파일에 매수 횟수 기록
@@ -114,7 +114,7 @@ def backtest(df, initial_balance=1000000, web_interval=0.005, sell_web_interval=
     return trade_log, final_value, profit, buy_count, sell_count
 
 # 실행
-data_path = "backtest_data/KRW-BTC_5min_2023-2025.csv"
+data_path = "backtest_data/KRW-BTC_5min_2024-2025.csv"
 df = load_data(data_path)
 trade_log, final_value, profit, buy_count, sell_count = backtest(df)
 
